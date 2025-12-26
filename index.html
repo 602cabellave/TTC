@@ -1,0 +1,154 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Connections 4x10</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="game-container">
+        <h1>4x10 Connections</h1>
+        <div id="board"></div>
+        <button id="submit-button" disabled>Submit</button>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html>
+
+<style>
+    #board {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 10px;
+        width: 400px; /* Adjust as needed */
+        margin: 20px auto;
+    }
+
+    .tile {
+        padding: 15px 5px;
+        background-color: #efefef;
+        border: 1px solid #ccc;
+        text-align: center;
+        cursor: pointer;
+        border-radius: 5px;
+        user-select: none;
+        transition: background-color 0.3s;
+    }
+
+        .tile.selected {
+            background-color: #5d5d5d;
+            color: white;
+        }
+
+    #submit-button {
+        display: block;
+        margin: 0 auto;
+        padding: 10px 20px;
+        font-size: 16px;
+        cursor: pointer;
+    }
+</style>
+<script type="text/javascript">
+//The JavaScript file contains the core logic: the words and categories, the game state management, and event listeners.
+           // javascript
+        // Define the words and their categories
+        const categories = [
+            { name: "Fruits", words: ["APPLE", "BANANA", "ORANGE", "GRAPE"] },
+            { name: "Colors", words: ["RED", "BLUE", "GREEN", "YELLOW"] },
+            { name: "Animals", words: ["DOG", "CAT", "FISH", "BIRD"] },
+            { name: "Planets", words: ["MARS", "VENUS", "JUPITER", "SATURN"] },
+            { name: "Shapes", words: ["SQUARE", "CIRCLE", "TRIANGLE", "STAR"] },
+            { name: "Vehicles", words: ["CAR", "BUS", "TRAIN", "PLANE"] },
+            { name: "Drinks", words: ["COFFEE", "TEA", "MILK", "WATER"] },
+            { name: "Metals", words: ["GOLD", "SILVER", "COPPER", "IRON"] },
+            { name: "Body Parts", words: ["HAND", "FOOT", "HEAD", "ARM"] },
+            { name: "Weather", words: ["SUN", "RAIN", "SNOW", "WIND"] }
+        ];
+
+        let allWords = [];
+        let selectedWords = [];
+        let foundCategories = [];
+
+        const boardElement = document.getElementById('board');
+        const submitButton = document.getElementById('submit-button');
+
+        // Function to initialize the game
+        function initializeGame() {
+            // Collect all words into a single array
+            categories.forEach(cat => {
+                allWords.push(...cat.words);
+            });
+
+            // Shuffle the words
+            allWords.sort(() => Math.random() - 0.5);
+
+            // Create the tiles in the DOM
+            allWords.forEach(word => {
+                const tile = document.createElement('div');
+                tile.classList.add('tile');
+                tile.textContent = word;
+                tile.addEventListener('click', () => toggleSelection(tile, word));
+                boardElement.appendChild(tile);
+            });
+
+            submitButton.addEventListener('click', handleSubmit);
+        }
+
+        // Function to handle tile selection
+        function toggleSelection(tile, word) {
+            if (tile.classList.contains('selected')) {
+                tile.classList.remove('selected');
+                selectedWords = selectedWords.filter(w => w !== word);
+            } else if (selectedWords.length < 4) {
+                tile.classList.add('selected');
+                selectedWords.push(word);
+            }
+
+            // Enable/disable submit button
+            submitButton.disabled = selectedWords.length !== 4;
+        }
+
+        // Function to handle submission of selected words
+        function handleSubmit() {
+            const selected = [...selectedWords].sort(); // Sort for consistent comparison
+
+            // Check if the selected words form a valid category
+            const foundCategory = categories.find(cat => {
+                const catWordsSorted = [...cat.words].sort();
+                return JSON.stringify(selected) === JSON.stringify(catWordsSorted);
+            });
+
+            if (foundCategory && !foundCategories.includes(foundCategory.name)) {
+                alert(`Correct! Category: ${foundCategory.name}`);
+                // Mark the tiles as found
+                const selectedTiles = document.querySelectorAll('.tile.selected');
+                selectedTiles.forEach(tile => {
+                    tile.classList.remove('selected');
+                    tile.classList.add('found'); // Optional: add a 'found' style
+                    tile.style.backgroundColor = '#4CAF50';
+                    tile.style.cursor = 'default';
+                    tile.removeEventListener('click', toggleSelection);
+                });
+                foundCategories.push(foundCategory.name);
+                selectedWords = [];
+                submitButton.disabled = true;
+
+                if (foundCategories.length === categories.length) {
+                    alert("Congratulations! You've found all the connections!");
+                }
+            } else {
+                alert("Incorrect connection. Please try again.");
+                // Deselect all for a new try
+                document.querySelectorAll('.tile.selected').forEach(tile => {
+                    tile.classList.remove('selected');
+                });
+                selectedWords = [];
+                submitButton.disabled = true;
+            }
+        }
+
+        // Start the game
+        initializeGame();
+</script>
