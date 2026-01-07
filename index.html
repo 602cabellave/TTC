@@ -38,7 +38,7 @@
         const code = document.getElementById('invitation-code');
         submitBtn.addEventListener('click', handleSubmit);
         function handleSubmit() {
-            var strHash = md5(code.Value);
+            var strHash = md5(code.value);
             window.location.href = strHash + ".html";
         }
     });
