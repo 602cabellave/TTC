@@ -4,12 +4,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Time to Connect</title>
+    <title>Mega Connect</title>
     <!--<link rel="stylesheet" href="style.css">-->
 </head>
 <body>
     <div class="container">
-        <h1>Time to Connect!</h1>
+        <h1>Time to Connect !</h1>
         <div id="categories-board" class="categories-board"></div>
         <div id="game-board" class="game-board"></div>
         <div class="controls">
@@ -35,7 +35,7 @@
     }
 
     .container {
-        width: 600px;
+        width: 400px;
         background-color: #fff;
         padding: 20px;
         border-radius: 10px;
@@ -67,9 +67,12 @@
         gap: 10px;
         font-weight:bold;
     }
-
+    .category {
+        font-style: italic;
+        margin-top: 10px;
+    }
     .word {
-        padding: 15px;
+        padding: 10px;
         background-color: #f0f0f0;
         border: 1px solid #ccc;
         border-radius: 5px;
@@ -127,40 +130,9 @@
         //const submitBtn = document.getElementById('submit-btn');
         const livesCounter = document.getElementById('lives-counter');
         const messageArea = document.getElementById('message-area');
-        /*
+        const alreadyGuessed = [
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-#FFFF007F
-#BFFF007F
-#7FFF007F
-#3FFF007F
-        */
+        ];
         const puzzles = [
             {
                 category: "things to do at the presidio golf course",
@@ -186,7 +158,9 @@
                 category: "last word in the title of some favorite television series",
                 words: ["philadelphia", "development", "horses", "bean"],
                 color: "#FFFF007F"
-            },
+            }
+
+            ,
             {
                 category: "first word of the name of some favorite bars",
                 words: ["back", "brazen", "royal", "joes"],
@@ -287,6 +261,7 @@
                 words: ["spindrift", "eggs", "prosecco", "ravioli"],
                 color: "#FF7F007F"
             }
+            
         ];
         /*
 
@@ -360,8 +335,8 @@
         }
 
         function selectWord(wordDiv, wordText) {
-            if (wordDiv.classList.contains('correct')) return;
-
+            //if (wordDiv.classList.contains('correct')) return;
+            var alreadySelected = selectedWords.length == 4;
             if (selectedWords.includes(wordText)) {
                 selectedWords = selectedWords.filter(word => word !== wordText);
                 wordDiv.classList.remove('selected');
@@ -370,7 +345,7 @@
                 wordDiv.classList.add('selected');
             }
             //submitBtn.disabled = selectedWords.length !== 4;
-            if (selectedWords.length == 4)
+            if (selectedWords.length == 4 && !alreadySelected)
                 handleSubmit();
         }
 
@@ -384,17 +359,30 @@
                 puzzle.words.every(word => selectedWords.includes(word)) &&
                 selectedWords.every(word => puzzle.words.includes(word))
             );
+            const almostFoundGroup = puzzles.find(puzzle =>
+                puzzle.words.filter(word => selectedWords.includes(word)).length == 3
+            );
+
+            const wasAlreadyGuessed = alreadyGuessed.find(puzzle =>
+                puzzle.words.every(word => selectedWords.includes(word)) &&
+                selectedWords.every(word => puzzle.words.includes(word))
+            );
+
+            if (!wasAlreadyGuessed)
+                alreadyGuessed.push({ words: selectedWords })
 
             if (foundGroup) {
                 handleCorrect(foundGroup);
+            } else if (almostFoundGroup) {
+                handleAlmostCorrect(wasAlreadyGuessed);
             } else {
-                handleIncorrect();
+                handleIncorrect(wasAlreadyGuessed);
             }
         }
 
         function handleCorrect(group) {
             groupsFound++;
-            //messageArea.textContent = `Correct! Category: ${group.category}`;
+            messageArea.textContent = `Correct! Category: ${group.category}`;
 
             // Mark the correct words on the board
             const wordDivs = document.querySelectorAll('.word');
@@ -415,6 +403,7 @@
             newDiv.appendChild(correctCats);
             newDiv.classList.add('categories');
             const cat = document.createElement('div');
+            cat.classList.add('category');
             cat.textContent = group.category;
             newDiv.style.backgroundColor = group.color;
             newDiv.appendChild(cat);
@@ -432,9 +421,23 @@
             }
         }
 
+        function handleAlmostCorrect(alreadyGuessed) {
+            if (!alreadyGuessed) {
+                lives--;
+                updateLives();
+            }
+            messageArea.textContent = 'One Away!' + (alreadyGuessed ? " (and, already guessed)" : "");
+
+            if (lives === 0) {
+                gameOver(false);
+            }
+        }
+
         function handleIncorrect() {
-            lives--;
-            updateLives();
+            if (!alreadyGuessed) {
+                lives--;
+                updateLives();
+            }
             messageArea.textContent = 'Incorrect guess. Try again!';
 
             if (lives === 0) {
