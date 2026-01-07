@@ -296,7 +296,7 @@
 
         let currentWords = [];
         let selectedWords = [];
-        let lives = 20;
+        let lives = 40;
         let groupsFound = 0;
 
         function initializeGame() {
