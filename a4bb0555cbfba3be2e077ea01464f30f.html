@@ -1,0 +1,458 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mega Connect</title>
+    <!--<link rel="stylesheet" href="style.css">-->
+</head>
+<body>
+    <div class="container">
+        <h1>Time to Connect !</h1>
+        <div id="categories-board" class="categories-board"></div>
+        <div id="game-board" class="game-board"></div>
+        <div class="controls">
+            <p>Guesses Left: <span id="lives-counter">20</span></p>
+            <!--<button id="submit-btn" disabled>Submit</button>-->
+        </div>
+        <div id="message-area"></div>
+    </div>
+    <!--<script src="script.js"></script>-->
+</body>
+</html>
+
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        background-color: #e0e0e0;
+        text-align: center;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+/*        height: 100vh;*/
+        margin: 0;
+    }
+
+    .container {
+        width: 400px;
+        background-color: #fff;
+        padding: 20px;
+        border-radius: 10px;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+
+    .game-board {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 10px;
+        margin-bottom: 20px;
+    }
+
+    .categories-board {
+        display: grid;
+        place-items: center;
+    }
+
+    .categories {
+        margin: 10px;
+        padding: 10px;
+        background-color: lightcoral;
+        border: 1px solid red;
+        width:95%;
+    }
+    .correctCats {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 10px;
+        font-weight:bold;
+    }
+    .category {
+        font-style: italic;
+        margin-top: 10px;
+    }
+    .word {
+        padding: 10px;
+        background-color: #f0f0f0;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+        cursor: pointer;
+        user-select: none;
+        transition: background-color 0.3s;
+        font-size:small
+    }
+
+        .word:hover {
+            background-color: #e9e9e9;
+        }
+
+        .word.selected {
+            background-color: #5a5a5a;
+            color: #fff;
+        }
+
+        .word.correct {
+            background-color: #4CAF50; /* Green for correct answers */
+            color: #fff;
+            cursor: default;
+        }
+
+    .controls {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-top: 20px;
+    }
+
+    button {
+        padding: 10px 20px;
+        background-color: #007bff;
+        color: #fff;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+    }
+
+        button:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+
+    #message-area {
+        margin-top: 15px;
+        color: red;
+        font-weight: bold;
+    }
+</style>
+<script type="text/javascript">
+    document.addEventListener('DOMContentLoaded', () => {
+        const gameBoard = document.getElementById('game-board');
+        //const submitBtn = document.getElementById('submit-btn');
+        const livesCounter = document.getElementById('lives-counter');
+        const messageArea = document.getElementById('message-area');
+        const alreadyGuessed = [
+
+        ];
+        const puzzles = [
+            {
+                category: "things to do at the presidio golf course",
+                words: ["chip", "putt", "trivia", "drive"],
+                color: "#FF00007F"
+            },
+            {
+                category: "streets that form the uphill climb on the way to work",
+                words: ["broadway", "pacific", "jackson", "green"],
+                color: "#FF3F007F"
+            },
+            {
+                category: "traversed during our Pepys walk-about",
+                words: ["abbeys", "churches", "pubs", "fields"],
+                color: "#FF7F007F"
+            },
+            {
+                category: "turn around points for some of our nice out and back walks/hikes",
+                words: ["golden gate bridge", "crash", "waterfall", "mailboxes"],
+                color: "#FFBF007F"
+            },
+            {
+                category: "last word in the title of some favorite television series",
+                words: ["philadelphia", "development", "horses", "bean"],
+                color: "#FFFF007F"
+            },
+            {
+                category: "first word of the name of some favorite bars",
+                words: ["back", "brazen", "royal", "joes"],
+                color: "#BFFF007F"
+            },
+            {
+                category: "conventionally enjoyed things that we dont like",
+                words: ["lamb", "skiing", "nightclubs", "cycling"],
+                color: "#7FFF007F"
+            },
+            {
+                category: "items that surround the saab",
+                words: ["paint cans", "recycling", "laundry", "mini"],
+                color: "#3FFF007F"
+            },
+            {
+                category: "premier league stadiums",
+                words: ["emirates", "etihad", "anfield", "villa park"],
+                color: "#00FF007F"
+            },
+            {
+                category: "places to lounge at the river",
+                words: ["porch", "pool", "sunfish", "tritoon"],
+                color: "#00FF3F7F"
+            },
+            {
+                category: "first names of EPL commentaters and announcers",
+                words: ["rebecca", "graham", "lee", "jon"],
+                color: "#00FF7F7F"
+            },
+            {
+                category: "vegetable preparations",
+                words: ["dice", "julien", "chop", "slice"],
+                color: "#00FFBF7F"
+            },
+            {
+                category: "events the middle school coordinator plans",
+                words: ["exploration", "dances", "retreats", "graduation"],
+                color: "#00FFFF7F"
+            },
+            {
+                category: "clubs in SF where we are not members",
+                words: ["united", "serc", "st francis", "university"],
+                color: "#00BFFF7F"
+            },
+            {
+                category: "things found in the lazy river",
+                words: ["st martin", "traffic cop", "basketball", "noodles"],
+                color: "#007FFF7F"
+            },
+            {
+                category: "misspellings of common brand name cleaning supplies",
+                words: ["pinesaul", "sharmin", "wyndex", "fabrice"],
+                color: "#003FFF7F"
+            },
+            {
+                category: "hawaiian accomidations",
+                words: ["jeep", "tentalo", "resort", "hotel"],
+                color: "#0000FF7F"
+            },
+            {
+                category: "places depicted on shirts we wear",
+                words: ["french american", "arguelo market", "dingle", "virginian"],
+                color: "#3F00FF7F"
+            },
+            {
+                category: "underwears",
+                words: ["circus", "leopard", "polkadot", "white"],
+                color: "#7F00FF7F"
+            },
+            {
+                category: "places we've queued",
+                words: ["wimbledon", "hog island", "dulles", "cinderella"],
+                color: "#BF00FF7F"
+            },
+            {
+                category: "ho's in one form or another",
+                words: ["roddy", "land", "hockey haven", "rake"],
+                color: "#FF00FF7F"
+            },
+            {
+                category: "places always proceeded by 'the'",
+                words: ["rivah", "mobile", "101", "ohio state"],
+                color: "#FF00BF7F"
+            },
+            {
+                category: "places international has sent you",
+                words: ["lucca", "paris", "mendocino", "washington d.c."],
+                color: "#FF007F7F"
+            },
+            {
+                category: "costco provisions we stock up on",
+                words: ["spindrift", "eggs", "prosecco", "ravioli"],
+                color: "#FF7F007F"
+            }
+            
+        ];
+        /*
+
+#FF00007F
+#FF3F007F
+#FF7F007F
+#FFBF007F
+#FFFF007F
+#BFFF007F
+#7FFF007F
+#3FFF007F
+#00FF007F
+#00FF3F7F
+#00FF7F7F
+#00FFBF7F
+#00FFFF7F
+#00BFFF7F
+#007FFF7F
+#003FFF7F
+#0000FF7F
+#3F00FF7F
+#7F00FF7F
+#BF00FF7F
+#FF00FF7F
+#FF00BF7F
+#FF007F7F
+#FF003F7F
+#FF00007F
+#FF3F007F
+#FF7F007F
+#FFBF007F
+#FFFF007F
+#BFFF007F
+#7FFF007F
+#3FFF007F
+        */
+
+
+
+        let currentWords = [];
+        let selectedWords = [];
+        let lives = 40;
+        let groupsFound = 0;
+
+        function initializeGame() {
+            // Combine all words and shuffle them
+            puzzles.forEach(puzzle => {
+                currentWords.push(...puzzle.words);
+            });
+            shuffleArray(currentWords);
+            renderBoard();
+            updateLives();
+        }
+
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+        }
+
+        function renderBoard() {
+            gameBoard.innerHTML = '';
+            currentWords.forEach(wordText => {
+                const wordDiv = document.createElement('div');
+                wordDiv.classList.add('word');
+                wordDiv.textContent = wordText;
+                wordDiv.addEventListener('click', () => selectWord(wordDiv, wordText));
+                gameBoard.appendChild(wordDiv);
+            });
+        }
+
+        function selectWord(wordDiv, wordText) {
+            //if (wordDiv.classList.contains('correct')) return;
+            var alreadySelected = selectedWords.length == 4;
+            if (selectedWords.includes(wordText)) {
+                selectedWords = selectedWords.filter(word => word !== wordText);
+                wordDiv.classList.remove('selected');
+            } else if (selectedWords.length < 4) {
+                selectedWords.push(wordText);
+                wordDiv.classList.add('selected');
+            }
+            //submitBtn.disabled = selectedWords.length !== 4;
+            if (selectedWords.length == 4 && !alreadySelected)
+                handleSubmit();
+        }
+
+        //submitBtn.addEventListener('click', handleSubmit);
+
+        function handleSubmit() {
+            if (selectedWords.length !== 4) return;
+
+            // Check if the selected words form a valid group
+            const foundGroup = puzzles.find(puzzle =>
+                puzzle.words.every(word => selectedWords.includes(word)) &&
+                selectedWords.every(word => puzzle.words.includes(word))
+            );
+            const almostFoundGroup = puzzles.find(puzzle =>
+                puzzle.words.filter(word => selectedWords.includes(word)).length == 3
+            );
+
+            const wasAlreadyGuessed = alreadyGuessed.find(puzzle =>
+                puzzle.words.every(word => selectedWords.includes(word)) &&
+                selectedWords.every(word => puzzle.words.includes(word))
+            );
+
+            if (!wasAlreadyGuessed)
+                alreadyGuessed.push({ words: selectedWords })
+
+            if (foundGroup) {
+                handleCorrect(foundGroup);
+            } else if (almostFoundGroup) {
+                handleAlmostCorrect(wasAlreadyGuessed);
+            } else {
+                handleIncorrect(wasAlreadyGuessed);
+            }
+        }
+
+        function handleCorrect(group) {
+            groupsFound++;
+            messageArea.textContent = `Correct! Category: ${group.category}`;
+
+            // Mark the correct words on the board
+            const wordDivs = document.querySelectorAll('.word');
+            let categories = document.getElementById("categories-board");
+            const newDiv = document.createElement('div');
+            const correctCats = document.createElement('div');
+            correctCats.classList.add('correctCats');
+            wordDivs.forEach(div => {
+                if (group.words.includes(div.textContent)) {
+                    const correctCat = document.createElement('div');
+                    correctCat.textContent = div.textContent;
+                    correctCats.appendChild(correctCat);
+                    div.classList.remove('selected');
+                    div.classList.add('correct');
+                    div.removeEventListener('click', selectWord); // Prevent further interaction
+                }
+            });
+            newDiv.appendChild(correctCats);
+            newDiv.classList.add('categories');
+            const cat = document.createElement('div');
+            cat.classList.add('category');
+            cat.textContent = group.category;
+            newDiv.style.backgroundColor = group.color;
+            newDiv.appendChild(cat);
+            categories.appendChild(newDiv);
+
+            // Remove the words from currentWords list and re-render board (optional, if you want found groups to disappear)
+            currentWords = currentWords.filter(word => !group.words.includes(word));
+            renderBoard();
+
+            selectedWords = [];
+            //submitBtn.disabled = true;
+
+            if (groupsFound === puzzles.length) {
+                gameOver(true);
+            }
+        }
+
+        function handleAlmostCorrect(alreadyGuessed) {
+            if (!alreadyGuessed) {
+                lives--;
+                updateLives();
+            }
+            messageArea.textContent = 'One Away!' + (alreadyGuessed ? " (and, already guessed)" : "");
+
+            if (lives === 0) {
+                gameOver(false);
+            }
+        }
+
+        function handleIncorrect() {
+            if (!alreadyGuessed) {
+                lives--;
+                updateLives();
+            }
+            messageArea.textContent = 'Incorrect guess. Try again!';
+
+            if (lives === 0) {
+                gameOver(false);
+            }
+        }
+
+        function updateLives() {
+            livesCounter.textContent = lives;
+        }
+
+        function gameOver(isWin) {
+            //submitBtn.disabled = true;
+            const gameOverMessage = isWin ? 'Congratulations! You won!' : 'Game Over! You ran out of lives.';
+            messageArea.textContent = gameOverMessage;
+            // Disable all words
+            document.querySelectorAll('.word').forEach(div => {
+                div.removeEventListener('click', selectWord);
+                div.style.cursor = 'default';
+            });
+        }
+
+        initializeGame();
+    });
+</script>
